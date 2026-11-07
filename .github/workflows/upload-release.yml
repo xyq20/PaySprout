@@ -1,0 +1,52 @@
+name: Upload verified release assets
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Successful Build desktop apps run ID
+        required: true
+      tag:
+        description: Existing version tag with a draft release
+        required: true
+        default: v0.1.0
+permissions:
+  actions: read
+  contents: write
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RUN_ID: ${{ inputs.run_id }}
+      RELEASE_TAG: ${{ inputs.tag }}
+    steps:
+      - name: Verify successful build matches the release tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$RUN_ID" =~ ^[0-9]+$ ]]
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          gh api "repos/$GH_REPO/actions/runs/$RUN_ID" > run.json
+          test "$(jq -r .conclusion run.json)" = success
+          test "$(jq -r .name run.json)" = 'Build desktop apps'
+          test "$(jq -r .head_repository.full_name run.json)" = "$GH_REPO"
+          tag_sha=$(gh api "repos/$GH_REPO/git/ref/tags/$RELEASE_TAG" --jq .object.sha)
+          test "$(jq -r .head_sha run.json)" = "$tag_sha"
+          test "$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)" = true
+      - name: Download the verified build artifacts
+        run: |
+          gh run download "$RUN_ID" -n windows-x64 -D dist
+          gh run download "$RUN_ID" -n macos-universal -D dist
+      - name: Check packages and generate SHA-256
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd dist
+          test "$(find . -maxdepth 1 -type f | wc -l)" -eq 3
+          unzip -t "PaySprout-${RELEASE_TAG#v}-Windows-x64.zip"
+          unzip -t "PaySprout-${RELEASE_TAG#v}-macOS-universal.zip"
+          sha256sum PaySprout-*.zip PaySprout-*.dmg > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+      - name: Upload assets to draft release
+        run: gh release upload "$RELEASE_TAG" dist/PaySprout-* dist/SHA256SUMS.txt --clobber
