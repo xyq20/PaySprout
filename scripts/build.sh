@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -eo pipefail
 cd "$(dirname "$0")/.."
 work_dir=$(mktemp -d "${TMPDIR:-/tmp}/encourager-build.XXXXXX")
 trap 'rm -rf "$work_dir"' EXIT
