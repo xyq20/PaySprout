@@ -1,5 +1,5 @@
 <Window x:Class="PaySprout.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:PaySprout"
- Title="薪芽 · 上班鼓励器" Width="660" Height="392" WindowStyle="None" ResizeMode="CanResizeWithGrip" AllowsTransparency="True" Background="Transparent" Topmost="True" Icon="AppIcon.ico" FontFamily="Microsoft YaHei UI, Segoe UI" FontSize="12" WindowStartupLocation="CenterScreen">
+ Title="薪芽 · 上班鼓励器" Width="660" Height="392" WindowStyle="None" ResizeMode="CanResizeWithGrip" AllowsTransparency="True" Background="Transparent" Foreground="{DynamicResource Ink}" Topmost="True" Icon="AppIcon.ico" FontFamily="Microsoft YaHei UI, Segoe UI" FontSize="12" WindowStartupLocation="CenterScreen">
  <Border x:Name="Shell" Margin="5" Background="{DynamicResource Canvas}" BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="20" Padding="18">
   <Grid>
    <Viewbox x:Name="FullBox" Stretch="Uniform">
@@ -54,7 +54,7 @@
     <Grid Width="380" Height="70" Background="Transparent" MouseLeftButtonDown="DragTitle">
      <Grid.ColumnDefinitions><ColumnDefinition Width="62"/><ColumnDefinition Width="135"/><ColumnDefinition/><ColumnDefinition Width="36"/></Grid.ColumnDefinitions>
      <local:SproutView x:Name="CompactBuddy" Width="58" Height="64" MouseLeftButtonUp="CheerClick" Cursor="Hand"/>
-     <StackPanel Grid.Column="1" VerticalAlignment="Center"><TextBlock Text="今日已赚" Foreground="{DynamicResource Muted}" FontSize="11"/><TextBlock x:Name="CompactAmount" FontSize="23" FontWeight="Medium"/></StackPanel>
+     <StackPanel Grid.Column="1" VerticalAlignment="Center"><TextBlock Text="今日已赚" Foreground="{DynamicResource Muted}" FontSize="11"/><Viewbox Height="29" Stretch="Uniform" StretchDirection="DownOnly" HorizontalAlignment="Left"><TextBlock x:Name="CompactAmount" FontSize="23" FontWeight="Medium"/></Viewbox></StackPanel>
      <StackPanel Grid.Column="2" VerticalAlignment="Center"><TextBlock x:Name="CompactCountdown" FontSize="11"/><ProgressBar x:Name="CompactProgress" Maximum="1" Height="5" Margin="0,9,8,0" Foreground="{DynamicResource Accent}" Background="{DynamicResource Line}" BorderThickness="0"/></StackPanel>
      <StackPanel Grid.Column="3" VerticalAlignment="Center"><Button Content="↗" Click="CompactClick" ToolTip="展开完整模式" AutomationProperties.Name="展开完整模式"/><Button Content="…" Click="MoreClick" ToolTip="更多选项" AutomationProperties.Name="更多选项"/></StackPanel>
     </Grid>

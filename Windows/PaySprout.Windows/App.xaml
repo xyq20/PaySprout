@@ -6,7 +6,7 @@
   <SolidColorBrush x:Key="Surface" Color="#F6F3EB"/>
   <SolidColorBrush x:Key="Canvas" Color="#FEFEFA"/>
   <SolidColorBrush x:Key="Line" Color="#DDE3D9"/>
-  <Style TargetType="TextBlock"><Setter Property="Foreground" Value="{DynamicResource Ink}"/><Setter Property="FontFamily" Value="Microsoft YaHei UI, Segoe UI"/></Style>
+  <Style TargetType="TextBlock"><Setter Property="FontFamily" Value="Microsoft YaHei UI, Segoe UI"/></Style>
   <Style TargetType="Button">
    <Setter Property="Foreground" Value="{DynamicResource Accent}"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Padding" Value="10,7"/><Setter Property="MinHeight" Value="32"/><Setter Property="Cursor" Value="Hand"/><Setter Property="FontFamily" Value="Microsoft YaHei UI, Segoe UI"/>
    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="Bg" Background="{TemplateBinding Background}" CornerRadius="9" Padding="{TemplateBinding Padding}"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bg" Property="Opacity" Value="0.7"/></Trigger><Trigger Property="IsPressed" Value="True"><Setter TargetName="Bg" Property="Opacity" Value="0.5"/></Trigger><Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Bg" Property="BorderBrush" Value="{DynamicResource Accent}"/><Setter TargetName="Bg" Property="BorderThickness" Value="1"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
