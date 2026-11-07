@@ -959,6 +959,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         menu.addItem(withTitle: "退出", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         statusItem.menu = menu
         AppUpdater.acknowledgeLaunch()
+        DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + 20) { UpdateFiles.cleanInstalled() }
         DispatchQueue.main.asyncAfter(deadline: .now() + 10) { self.updater.check(manual: false) }
     }
     func applicationWillTerminate(_ notification: Notification) { updater.cancel(); updater.discardPreparedUpdate() }

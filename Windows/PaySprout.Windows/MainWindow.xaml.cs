@@ -50,6 +50,7 @@ public partial class MainWindow : Window
         Closed += (_, _) => { timer.Stop(); TrySave(); updater.Close(); tray.Dispose(); };
         Loaded += async (_, _) => {
             ApplyMode(); Tick(); timer.Start();
+            _=System.Threading.Tasks.Task.Run(async ()=> { await System.Threading.Tasks.Task.Delay(20000); UpdateInstaller.CleanInstalled(); });
             if(await AppUpdater.HandleLaunchAsync()) return;
             if (Environment.GetCommandLineArgs().Contains("--smoke-test")) {
                 try { await SmokeTest.Run(this); Application.Current.Shutdown(0); }

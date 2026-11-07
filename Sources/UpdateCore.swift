@@ -79,6 +79,15 @@ enum UpdateFiles {
         let size = try file.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
         guard size == update.size, try hash(file) == update.sha256 else { throw UpdateError("下载文件不完整或校验失败，请重新下载。") }
     }
+    static func cleanInstalled() {
+        let manager = FileManager.default
+        guard let directories = try? manager.contentsOfDirectory(at: root, includingPropertiesForKeys: nil) else { return }
+        for directory in directories where UUID(uuidString: directory.lastPathComponent) != nil {
+            if (try? String(contentsOf: directory.appendingPathComponent("result.txt"), encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)) == "installed" {
+                try? manager.removeItem(at: directory)
+            }
+        }
+    }
     @discardableResult
     static func run(_ executable: String, _ arguments: [String]) throws -> String {
         let task = Process(); task.executableURL = URL(fileURLWithPath: executable); task.arguments = arguments

@@ -26,7 +26,8 @@ public static class UpdateInstaller
         var incoming=Path.Combine(directory,$".PaySprout-{token}.new.exe");
         var backup=Path.Combine(directory,$".PaySprout-{token}.previous.exe");
         if(File.Exists(incoming) || File.Exists(backup)) throw new IOException("此更新已有安装任务，请重新检查更新。");
-        File.Copy(payload,incoming,false); // Check write permission before the running app quits.
+        try { File.Copy(payload,incoming,false); } // Check write permission before the running app quits.
+        catch { if(File.Exists(incoming)) File.Delete(incoming); throw; }
         oldProcess ??= Process.GetCurrentProcess();
         var plan=new InstallPlan(token,target,incoming,backup,Hash(incoming),version,oldProcess.Id,oldProcess.StartTime.ToUniversalTime().Ticks,smokeTest);
         try {
@@ -114,4 +115,19 @@ public static class UpdateInstaller
         } finally { next?.Dispose(); }
     }
     public static void Discard(InstallPlan plan) { if(File.Exists(plan.Incoming)) File.Delete(plan.Incoming); }
+    public static void CleanInstalled()
+    {
+        if(!Directory.Exists(InstallPlan.Root)) return;
+        foreach(var directory in Directory.EnumerateDirectories(InstallPlan.Root)) {
+            try {
+                if(!Guid.TryParseExact(Path.GetFileName(directory),"D",out _)) continue;
+                var result=Path.Combine(directory,"result.json");
+                if(!File.Exists(result)) continue;
+                using var document=JsonDocument.Parse(File.ReadAllText(result));
+                if(document.RootElement.GetProperty("Status").GetString()!="installed") continue;
+                var plan=ReadPlan(Path.Combine(directory,"plan.json"));
+                File.Delete(plan.Backup); Directory.Delete(directory,true);
+            } catch(Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException or InvalidDataException or KeyNotFoundException) { }
+        }
+    }
 }
