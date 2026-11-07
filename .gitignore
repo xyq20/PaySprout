@@ -1,3 +1,8 @@
 .DS_Store
 /build/
 /.build/
+**/bin/
+**/obj/
+/dist/
+/smoke/
+smoke-error.txt

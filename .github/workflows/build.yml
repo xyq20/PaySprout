@@ -1,0 +1,62 @@
+name: Build desktop apps
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Test salary and shift models
+        run: dotnet run --project Windows/PaySprout.Tests -c Release
+      - name: Publish self-contained Windows x64 app
+        run: dotnet publish Windows/PaySprout.Windows -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -o dist/windows
+      - name: Exercise the published WPF app
+        shell: pwsh
+        run: |
+          $process = Start-Process -FilePath ./dist/windows/PaySprout.exe -ArgumentList '--smoke-test' -PassThru
+          if (-not $process.WaitForExit(60000)) { $process.Kill(); throw 'WPF smoke test timed out' }
+          if ($process.ExitCode -ne 0) {
+            if (Test-Path smoke-error.txt) { Get-Content smoke-error.txt }
+            throw "WPF smoke test failed: $($process.ExitCode)"
+          }
+          if (-not (Test-Path smoke/passed.txt)) { throw 'Smoke test did not complete' }
+          Get-Content smoke/passed.txt
+      - name: Package portable Windows app
+        shell: pwsh
+        run: |
+          Copy-Item docs/INSTALL-Windows.txt dist/windows/首次打开说明.txt
+          Copy-Item LICENSE dist/windows/LICENSE.txt
+          Compress-Archive -Path dist/windows/* -DestinationPath dist/PaySprout-0.1.0-Windows-x64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-x64
+          path: dist/PaySprout-*.zip
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-smoke-evidence
+          path: |
+            smoke/
+            smoke-error.txt
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and test universal app
+        run: ./scripts/package-macos.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-universal
+          path: |
+            dist/PaySprout-*.zip
+            dist/PaySprout-*.dmg
+          if-no-files-found: error
