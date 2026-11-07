@@ -269,24 +269,30 @@ struct Encourager: View {
                 Text(night ? "今晚，时间属于你" : "让努力，慢慢有回响").font(.system(size: 11)).foregroundStyle(muted)
             }
             Spacer(minLength: 8)
-            Image(systemName: "ellipsis").font(.system(size: 12)).foregroundStyle(muted.opacity(0.7)).accessibilityHidden(true)
             }
-            .frame(maxWidth: .infinity, minHeight: 32)
+            .frame(maxWidth: .infinity, minHeight: 32, maxHeight: 32)
             .overlay { WindowDragArea().help("按住标题或此处空白拖动窗口").accessibilityHidden(true) }
             HStack(spacing: 4) {
-                Button(action: previewOffDuty) {
-                    Image(systemName: "party.popper").frame(width: 32, height: 32).contentShape(Rectangle())
-                }.accessibilityLabel("预览下班彩蛋").help("预览下班彩蛋 · 不改变真实收入和进度")
-                sizeMenu
-                Button { settings = false; compactMode = true } label: {
-                    Image(systemName: "rectangle.compress.vertical").frame(width: 32, height: 32).contentShape(Rectangle())
-                }.accessibilityLabel("切换紧凑模式").help("紧凑模式 · 只看金额和倒数")
-                Button { if settings { settings = false } else { openSettings() } } label: {
-                    Image(systemName: settings ? "arrow.left" : "slider.horizontal.3").frame(width: 32, height: 32).contentShape(Rectangle())
+                Menu {
+                    Button(settings ? "返回主界面" : "偏好设置") {
+                        if settings { settings = false } else { openSettings() }
+                    }.keyboardShortcut(",", modifiers: .command)
+                    Menu("界面大小") {
+                        scaleOptions
+                        Divider()
+                        Button("自定义大小…", action: openSizeEditor)
+                    }
+                    Button("切换紧凑模式") { settings = false; compactMode = true }
+                    Button(previewingOffDuty ? "结束彩蛋预览" : "预览下班彩蛋") {
+                        if previewingOffDuty { endOffDutyPreview() } else { previewOffDuty() }
+                    }
+                    Divider()
+                    Button("检查更新…") { (NSApp.delegate as? AppDelegate)?.checkForUpdates() }
+                } label: {
+                    Image(systemName: "ellipsis").frame(width: 32, height: 32).contentShape(Rectangle())
                 }
-                .accessibilityLabel(settings ? "返回，放弃未保存的设置" : "打开偏好设置")
-                .help(settings ? "返回 · 放弃未保存的修改" : "设置日薪与上下班时间（⌘,）")
-                .keyboardShortcut(",", modifiers: .command)
+                .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+                .accessibilityLabel("更多选项").help("更多：设置、大小、紧凑模式、彩蛋与更新")
                 Button { (NSApp.delegate as? AppDelegate)?.panel.orderOut(nil) } label: {
                     Image(systemName: "minus").frame(width: 32, height: 32).contentShape(Rectangle())
                 }.accessibilityLabel("收起到菜单栏").help("收起到菜单栏 · 点击太阳图标可找回")
@@ -295,21 +301,6 @@ struct Encourager: View {
                 }.accessibilityLabel("退出上班鼓励器").help("关闭并退出")
             }.font(.system(size: 12, weight: .medium)).buttonStyle(QuietButtonStyle())
         }.frame(height: 32)
-    }
-
-    private var sizeMenu: some View {
-        Menu {
-            Text("界面大小")
-            scaleOptions
-            Divider()
-            Button("自定义大小…", action: openSizeEditor)
-            Text("也可拖动窗口右下角")
-        } label: {
-            Image(systemName: "textformat.size").frame(width: 32, height: 32).contentShape(Rectangle())
-        }
-        .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-        .accessibilityLabel("调整界面大小，当前 \(Int(displayScale * 100))%")
-        .help("当前窗口 \(Int(windowState.size.width)) × \(Int(windowState.size.height))，可拖动右下角调整")
     }
 
     private var scaleOptions: some View {
@@ -837,6 +828,7 @@ final class DragHandle: NSView {
     override func mouseDragged(with event: NSEvent) {
         guard let window else { return }
         let pointer = window.convertPoint(toScreen: event.locationInWindow)
+        guard hypot(pointer.x - initialMouse.x, pointer.y - initialMouse.y) >= 4 else { return }
         window.setFrameOrigin(NSPoint(x: initialOrigin.x + pointer.x - initialMouse.x,
                                       y: initialOrigin.y + pointer.y - initialMouse.y))
     }

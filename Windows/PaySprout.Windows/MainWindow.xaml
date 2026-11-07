@@ -12,10 +12,7 @@
        <TextBlock Text="每一分努力，都在悄悄发芽。" Foreground="{DynamicResource Muted}" FontSize="11" Margin="12,0,0,0" VerticalAlignment="Center"/>
       </StackPanel>
       <StackPanel Grid.Column="1" Orientation="Horizontal">
-       <Button Content="✧" Click="PreviewClick" ToolTip="预览下班彩蛋" AutomationProperties.Name="预览下班彩蛋"/>
-       <Button Content="AA" Click="SizeClick" ToolTip="调整大小" AutomationProperties.Name="调整大小"/>
-       <Button Content="▱" Click="CompactClick" ToolTip="紧凑模式" AutomationProperties.Name="切换紧凑模式"/>
-       <Button Content="⚙" Click="SettingsClick" ToolTip="偏好设置 Ctrl+," AutomationProperties.Name="偏好设置"/>
+       <Button Content="…" Click="MoreClick" ToolTip="更多：设置、大小、紧凑模式、彩蛋与更新" AutomationProperties.Name="更多选项"/>
        <Button Content="−" Click="HideClick" ToolTip="收起到系统托盘" AutomationProperties.Name="收起到系统托盘"/>
        <Button Content="×" Click="ExitClick" ToolTip="退出" AutomationProperties.Name="退出薪芽"/>
       </StackPanel>

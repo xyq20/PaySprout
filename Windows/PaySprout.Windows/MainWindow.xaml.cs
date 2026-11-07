@@ -161,7 +161,19 @@ public partial class MainWindow : Window
     private void MoreClick(object sender,RoutedEventArgs e) {
         var menu = new ContextMenu();
         void Item(string title,Action action) { var item = new MenuItem { Header=title }; item.Click += (_,_) => action(); menu.Items.Add(item); }
-        Item("展开完整模式",ToggleCompact); Item("偏好设置",OpenSettings); Item("检查更新…",async ()=>await updater.CheckAsync(true)); Item("调整大小…",CustomSize); Item(pause == null ? "带薪充电" : "结束充电",ToggleBreak); Item(preview ? "结束预览" : "预览下班彩蛋",TogglePreview); Item("收起到系统托盘",Hide); Item("退出",Close);
+        Item("偏好设置",OpenSettings);
+        var sizes=new MenuItem { Header="界面大小" };
+        foreach(var scale in new[]{.8,1,1.2,1.4}) {
+            var size=new MenuItem { Header=$"{scale:P0}" };
+            size.Click+=(_,_)=> { preferences.Scale=scale; if(preferences.Compact) { preferences.CompactWidth=404*scale+20; preferences.CompactHeight=104*scale+20; } else { preferences.FullWidth=640*scale+20; preferences.FullHeight=372*scale+20; } ApplyMode(); TrySave(); };
+            sizes.Items.Add(size);
+        }
+        var customSize=new MenuItem { Header="自定义大小…" }; customSize.Click+=(_,_)=>CustomSize(); sizes.Items.Add(customSize); menu.Items.Add(sizes);
+        Item(preferences.Compact ? "展开完整模式" : "切换紧凑模式",ToggleCompact);
+        Item(preview ? "结束彩蛋预览" : "预览下班彩蛋",TogglePreview);
+        menu.Items.Add(new Separator());
+        Item("检查更新…",async ()=>await updater.CheckAsync(true));
+        if(preferences.Compact) { Item(pause==null ? "带薪充电" : "结束充电",ToggleBreak); Item("收起到系统托盘",Hide); Item("退出",Close); }
         menu.PlacementTarget=(UIElement)sender; menu.IsOpen=true;
     }
     private void SettingsClick(object sender,RoutedEventArgs e) => OpenSettings();
