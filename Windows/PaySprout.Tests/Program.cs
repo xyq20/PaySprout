@@ -1,4 +1,5 @@
 using PaySprout;
+using System.Text.Json;
 
 int checks = 0;
 void Check(bool condition, string message) { checks++; if (!condition) throw new Exception(message); }
@@ -33,3 +34,13 @@ Check(!done.ShouldCelebrate(done.Start) && !midpoint.ShouldCelebrate(null), "No 
 foreach (var (fraction, stage) in new[]{(0d,0),(.01,1),(.499,1),(.5,2),(.849,2),(.85,3),(.999,3),(1d,4)})
     Check(Growth.Stage(fraction) == stage, "Growth boundary");
 Console.WriteLine($"Passed {checks} Windows model checks.");
+using (var fixture = JsonDocument.Parse(File.ReadAllText("Tests/UpdateFixtures.json"))) {
+    foreach (var row in fixture.RootElement.GetProperty("versions").EnumerateArray())
+        Check(UpdatePolicy.IsNewer(row[0].GetString()!,row[1].GetString()!) == row[2].GetBoolean(), "Update version: " + row);
+    foreach (var path in fixture.RootElement.GetProperty("invalidPaths").EnumerateArray())
+        Check(!UpdatePolicy.SafeArchivePath(path.GetString()!), "Unsafe update archive: " + path);
+    Check(UpdatePolicy.SafeArchivePath("PaySprout.exe"), "Valid archive path");
+}
+Console.WriteLine($"Passed {checks} Windows model and update checks.");
+await UpdateTests.RunAsync(Check);
+Console.WriteLine($"Passed {checks} Windows model, update policy, download and archive checks.");

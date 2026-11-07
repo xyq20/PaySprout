@@ -73,6 +73,7 @@
       <TextBlock x:Name="SettingsError" Foreground="#B83E37" TextWrapping="Wrap" Margin="0,12,0,0"/>
       <TextBlock Text="支持跨午夜班次。收入包含班次内休息，不代表实际结算工资。" Foreground="{DynamicResource Muted}" FontSize="11" Margin="0,8,0,0"/>
      </StackPanel>
+     <Button Grid.Row="2" Content="检查更新…" Click="UpdateClick" HorizontalAlignment="Left" VerticalAlignment="Bottom"/>
      <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom"><Button Content="取消" Click="CancelSettings" Margin="0,0,12,0"/><Button Content="保存设置" Click="SaveSettings" Background="#E8F2E8" Foreground="#3D6E54"/></StackPanel>
     </Grid>
    </Viewbox>

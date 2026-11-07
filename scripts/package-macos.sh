@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
-version=$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' Resources/Info.plist)
+version=$(cat VERSION)
 ./scripts/build.sh --universal --test
 mkdir -p dist
 name="PaySprout-$version-macOS-universal"

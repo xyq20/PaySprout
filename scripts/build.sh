@@ -21,7 +21,7 @@ mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
 architectures=(arm64)
 if [[ " ${*:-} " == *" --universal "* ]]; then architectures+=(x86_64); fi
 for arch in "${architectures[@]}"; do
-    xcrun swiftc Sources/Models.swift Sources/Effects.swift Sources/main.swift -o "$work_dir/Encourager-$arch" "${flags[@]}" -O -framework AppKit -framework SwiftUI -target "$arch-apple-macosx26.0"
+    xcrun swiftc Sources/Models.swift Sources/UpdateCore.swift Sources/Updater.swift Sources/Effects.swift Sources/main.swift -o "$work_dir/Encourager-$arch" "${flags[@]}" -O -framework AppKit -framework SwiftUI -target "$arch-apple-macosx26.0"
 done
 if [[ ${#architectures[@]} -gt 1 ]]; then
     lipo -create "$work_dir/Encourager-arm64" "$work_dir/Encourager-x86_64" -output "$work_dir/Encourager"
@@ -30,9 +30,12 @@ else
 fi
 cp "$work_dir/Encourager" "$app/Contents/MacOS/Encourager"
 cp Resources/Info.plist "$app/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c "Set CFBundleShortVersionString $(cat VERSION)" "$app/Contents/Info.plist"
 cp Resources/AppIcon.icns "$app/Contents/Resources/AppIcon.icns"
+cp Resources/install-update-macos.sh "$app/Contents/Resources/install-update-macos.sh"
 codesign --force --sign - "$app"
 if [[ " ${*:-} " == *" --test "* ]]; then
     xcrun swiftc "${flags[@]}" Sources/Models.swift Tests/Progress.swift -o "$work_dir/ProgressTests"
     "$work_dir/ProgressTests"
+    ./scripts/test-updates-macos.sh
 fi

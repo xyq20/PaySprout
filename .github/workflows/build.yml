@@ -29,12 +29,23 @@ jobs:
           }
           if (-not (Test-Path smoke/passed.txt)) { throw 'Smoke test did not complete' }
           Get-Content smoke/passed.txt
+      - name: Exercise real update install and failed-launch rollback
+        shell: pwsh
+        run: |
+          $process = Start-Process -FilePath ./dist/windows/PaySprout.exe -ArgumentList '--update-install-smoke', 'smoke' -PassThru
+          if (-not $process.WaitForExit(120000)) { $process.Kill(); throw 'Update install smoke test timed out' }
+          if ($process.ExitCode -ne 0) {
+            if (Test-Path smoke/update-error.txt) { Get-Content smoke/update-error.txt }
+            throw "Update install smoke test failed: $($process.ExitCode)"
+          }
+          Get-Content smoke/update-passed.txt
       - name: Package portable Windows app
         shell: pwsh
         run: |
           Copy-Item docs/INSTALL-Windows.txt dist/windows/首次打开说明.txt
           Copy-Item LICENSE dist/windows/LICENSE.txt
-          Compress-Archive -Path dist/windows/* -DestinationPath dist/PaySprout-0.1.0-Windows-x64.zip
+          $version = (Get-Content VERSION -Raw).Trim()
+          Compress-Archive -Path dist/windows/* -DestinationPath "dist/PaySprout-$version-Windows-x64.zip"
       - uses: actions/upload-artifact@v4
         with:
           name: windows-x64
@@ -53,6 +64,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build and test universal app
         run: ./scripts/package-macos.sh
+      - name: Test update install and failed-launch rollback
+        run: python3 scripts/test-update-install-macos.py
       - uses: actions/upload-artifact@v4
         with:
           name: macos-universal

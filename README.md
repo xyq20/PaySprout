@@ -8,16 +8,29 @@ A gentle desktop companion for macOS and Windows that tracks daily earnings and 
 
 ## 下载与启动
 
-在 [Releases](https://github.com/xyq20/PaySprout/releases/latest) 下载首版 **v0.1.0**：
+在 [Releases](https://github.com/xyq20/PaySprout/releases/latest) 下载最新版本：
 
 | 平台 | 下载文件 | 要求 / 启动方式 |
 | --- | --- | --- |
-| macOS | `PaySprout-0.1.0-macOS-universal.dmg` 或 `.zip` | macOS 26+，Apple Silicon / Intel；将「上班鼓励器.app」拖入 Applications |
-| Windows | `PaySprout-0.1.0-Windows-x64.zip` | Windows 10/11 x64；完整解压后双击 `PaySprout.exe`；自带 .NET 运行时 |
+| macOS | `PaySprout-<版本>-macOS-universal.dmg` 或 `.zip` | macOS 26+，Apple Silicon / Intel；将「上班鼓励器.app」拖入 Applications |
+| Windows | `PaySprout-<版本>-Windows-x64.zip` | Windows 10/11 x64；完整解压后双击 `PaySprout.exe`；自带 .NET 运行时 |
 
 首版未做 Apple 开发者公证或 Windows 商业代码签名，首次运行可能出现系统拦截。请核对官方仓库下载来源及发布页 `SHA256SUMS.txt`；具体打开步骤见 [Mac 说明](docs/INSTALL-macOS.txt) / [Windows 说明](docs/INSTALL-Windows.txt)。
 
 以下交互说明主要以 Mac 为例。Windows 用 `Ctrl+,` 打开设置，托盘薪芽图标替代菜单栏太阳，双击托盘图标恢复；`Enter` 保存，`Esc` 取消。Windows 两种模式均可拖动右下角、通过 AA / 更多菜单选择缩放或自定义尺寸。两个平台分别使用系统原生控件，动画绘制与细节略有区别。
+
+## 应用内更新（v0.1.1 起）
+
+- 启动约 10 秒后自动检查新版本，后台检查间隔至少 6 小时。网络失败不会影响收入与计时。
+- Mac 菜单栏太阳图标、Windows 托盘图标、两端设置页与紧凑模式更多菜单中，均有「检查更新…」。
+- 发现新版后可查看发布说明，点击「下载更新」，校验成功后点击「重启更新」。下载过程中可取消。
+- 更新保留日薪、上下班时间和窗口设置。临时充电记录随应用重启结束，收入按真实班次时间重新计算。
+- 更新器只使用本仓库最新稳定 Release 的对应 ZIP，校验 GitHub 提供的 SHA-256、文件大小、包结构和版本。未通过校验不会替换旧程序；新版无法完成启动确认时恢复旧版。
+- Mac 请从有写入权限的应用目录运行，不能直接在 DMG / 只读目录中更新。Windows 解压目录同样需要可写，更新不会请求管理员权限。
+
+**v0.1.0 用户需手动安装一次 v0.1.1 或更新版本，才能获得更新器。** 原生桌面程序更新需要重启，不会在运行中替换业务代码。
+
+维护者发布新版时修改仓库根目录 `VERSION`，双端构建会据此设置版本并生成统一命名的附件；发布附件时保留 GitHub 自动生成的 SHA-256 摘要。更新器不需要额外服务器、token 或手工更新的版本清单。
 
 ## 窗口与大小
 

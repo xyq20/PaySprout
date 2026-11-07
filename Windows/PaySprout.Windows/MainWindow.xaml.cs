@@ -16,6 +16,7 @@ public partial class MainWindow : Window
     private readonly Settings preferences = Settings.Load();
     private readonly DispatcherTimer timer = new() { Interval = TimeSpan.FromMilliseconds(33) };
     private readonly Forms.NotifyIcon tray;
+    private readonly AppUpdater updater;
     private BreakSession? pause;
     private bool preview, editing, resizing, night;
     private int quote;
@@ -38,19 +39,22 @@ public partial class MainWindow : Window
         trayMenu.Items.Add("预览下班彩蛋", null, (_, _) => { Restore(); TogglePreview(); });
         trayMenu.Items.Add("退出", null, (_, _) => Close());
         tray.ContextMenuStrip = trayMenu;
+        updater=new AppUpdater(this);
+        trayMenu.Items.Insert(5,new Forms.ToolStripMenuItem("检查更新…",null,async (_,_)=> { Restore(); await updater.CheckAsync(true); }));
         tray.DoubleClick += (_, _) => Restore();
         timer.Tick += (_, _) => Tick();
         IsVisibleChanged += (_, _) => { if (IsVisible) { nextStatus = DateTime.MinValue; timer.Start(); } else timer.Stop(); UpdateMotion(); };
         StateChanged += (_, _) => { if (WindowState == WindowState.Minimized) Hide(); };
         SizeChanged += (_, _) => RememberSize();
         PreviewKeyDown += OnKey;
-        Closed += (_, _) => { timer.Stop(); tray.Dispose(); TrySave(); };
+        Closed += (_, _) => { timer.Stop(); TrySave(); updater.Close(); tray.Dispose(); };
         Loaded += async (_, _) => {
             ApplyMode(); Tick(); timer.Start();
+            if(await AppUpdater.HandleLaunchAsync()) return;
             if (Environment.GetCommandLineArgs().Contains("--smoke-test")) {
                 try { await SmokeTest.Run(this); Application.Current.Shutdown(0); }
                 catch (Exception ex) { Console.Error.WriteLine(ex); File.WriteAllText("smoke-error.txt",ex.ToString()); Application.Current.Shutdown(1); }
-            }
+            } else { await System.Threading.Tasks.Task.Delay(10000); if(IsLoaded) await updater.CheckAsync(false); }
         };
     }
 
@@ -156,10 +160,11 @@ public partial class MainWindow : Window
     private void MoreClick(object sender,RoutedEventArgs e) {
         var menu = new ContextMenu();
         void Item(string title,Action action) { var item = new MenuItem { Header=title }; item.Click += (_,_) => action(); menu.Items.Add(item); }
-        Item("展开完整模式",ToggleCompact); Item("偏好设置",OpenSettings); Item("调整大小…",CustomSize); Item(pause == null ? "带薪充电" : "结束充电",ToggleBreak); Item(preview ? "结束预览" : "预览下班彩蛋",TogglePreview); Item("收起到系统托盘",Hide); Item("退出",Close);
+        Item("展开完整模式",ToggleCompact); Item("偏好设置",OpenSettings); Item("检查更新…",async ()=>await updater.CheckAsync(true)); Item("调整大小…",CustomSize); Item(pause == null ? "带薪充电" : "结束充电",ToggleBreak); Item(preview ? "结束预览" : "预览下班彩蛋",TogglePreview); Item("收起到系统托盘",Hide); Item("退出",Close);
         menu.PlacementTarget=(UIElement)sender; menu.IsOpen=true;
     }
     private void SettingsClick(object sender,RoutedEventArgs e) => OpenSettings();
+    private async void UpdateClick(object sender,RoutedEventArgs e) => await updater.CheckAsync(true);
     internal void OpenSettings() {
         RememberSize(); preferences.Compact=false; editing=true;
         PayInput.Text=preferences.DailyPay.ToString("0.####",CultureInfo.CurrentCulture);

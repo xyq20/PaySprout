@@ -364,6 +364,7 @@ struct Encourager: View {
                     Menu {
                         Button("展开完整模式") { compactMode = false }
                         Button("偏好设置", action: openSettings)
+                        Button("检查更新…") { (NSApp.delegate as? AppDelegate)?.checkForUpdates() }
                         Button("预览下班彩蛋", action: previewOffDuty)
                         if previewingOffDuty { Button("结束预览", action: endOffDutyPreview) }
                         Menu("界面大小") {
@@ -664,6 +665,7 @@ struct Encourager: View {
             HStack(spacing: 6) {
                 Image(systemName: "lock").accessibilityHidden(true)
                 Text("仅保存在这台 Mac")
+                Button("检查更新…") { (NSApp.delegate as? AppDelegate)?.checkForUpdates() }
                 Spacer()
                 Button("取消") { settings = false }.buttonStyle(.bordered).controlSize(.large)
                     .keyboardShortcut(.cancelAction)
@@ -856,7 +858,9 @@ final class FloatingPanel: NSPanel {
     }
 }
 
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
+    let updater = AppUpdater()
     let windowState = WidgetWindowState()
     var panel: NSPanel!
     var statusItem: NSStatusItem!
@@ -941,6 +945,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let menu = NSMenu()
         menu.addItem(withTitle: "显示鼓励器", action: #selector(showPanel), keyEquivalent: "").target = self
         menu.addItem(withTitle: "预览下班彩蛋", action: #selector(previewCelebration), keyEquivalent: "").target = self
+        menu.addItem(withTitle: "检查更新…", action: #selector(checkForUpdates), keyEquivalent: "").target = self
         menu.addItem(withTitle: "切换完整 / 紧凑模式", action: #selector(toggleMode), keyEquivalent: "").target = self
         let sizes = NSMenu(title: "界面大小")
         for (title, scale) in [("小 · 80%", 0.8), ("标准 · 100%", 1.0), ("大 · 120%", 1.2), ("特大 · 140%", 1.4)] {
@@ -953,7 +958,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         menu.addItem(.separator())
         menu.addItem(withTitle: "退出", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         statusItem.menu = menu
+        AppUpdater.acknowledgeLaunch()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10) { self.updater.check(manual: false) }
     }
+    func applicationWillTerminate(_ notification: Notification) { updater.cancel(); updater.discardPreparedUpdate() }
+    @objc func checkForUpdates() { updater.check(manual: true) }
     @objc func previewCelebration() {
         showPanel()
         NotificationCenter.default.post(name: Notification.Name("PaySproutPreviewOffDuty"), object: nil)
@@ -973,8 +982,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         NSApp.activate(ignoringOtherApps: true) }
 }
 
-let application = NSApplication.shared
-let delegate = AppDelegate()
-application.delegate = delegate
-application.setActivationPolicy(.accessory)
-application.run()
+MainActor.assumeIsolated {
+    let application = NSApplication.shared
+    let delegate = AppDelegate()
+    application.delegate = delegate
+    application.setActivationPolicy(.accessory)
+    withExtendedLifetime(delegate) { application.run() }
+}
